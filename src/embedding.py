@@ -3,9 +3,7 @@ import numpy as np
 
 from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema import Document
-
-from src.data_loader import load_all_documents
+from langchain_core.documents import Document
 
 
 class EmbeddingPipeline:
@@ -37,14 +35,13 @@ class EmbeddingPipeline:
 
         return chunks
 
-    def embed_chunks(self, chunks: List[Document]):
+    def embed_chunks(self, chunks):
 
         texts = [chunk.page_content for chunk in chunks]
 
-        embeddings = self.model.encode(
-            texts,
-            show_progress_bar=True
-        )
+        print(f"[INFO] Generating embeddings for {len(texts)} chunks")
+
+        embeddings = self.model.encode(texts, show_progress_bar=True)
 
         embeddings = np.array(embeddings).astype("float32")
 
@@ -54,6 +51,8 @@ class EmbeddingPipeline:
 
 
 if __name__ == "__main__":
+
+    from src.data_loader import load_all_documents
 
     docs = load_all_documents("../data")
 

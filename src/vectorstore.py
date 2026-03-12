@@ -1,12 +1,11 @@
 import os
-import faiss
 import pickle
+import faiss
 import numpy as np
 
 from sentence_transformers import SentenceTransformer
 
 from src.embedding import EmbeddingPipeline
-from src.data_loader import load_all_documents
 
 
 class FaissVectorStore:
@@ -39,7 +38,13 @@ class FaissVectorStore:
 
         self.index.add(embeddings)
 
-        self.metadata = [{"text": c.page_content} for c in chunks]
+        self.metadata = [
+            {
+                "text": chunk.page_content,
+                "source": chunk.metadata.get("source", "unknown")
+            }
+            for chunk in chunks
+        ]
 
         self.save()
 
@@ -51,7 +56,6 @@ class FaissVectorStore:
         )
 
         with open(os.path.join(self.persist_dir, "metadata.pkl"), "wb") as f:
-
             pickle.dump(self.metadata, f)
 
         print("[INFO] Vector store saved")
@@ -63,7 +67,6 @@ class FaissVectorStore:
         )
 
         with open(os.path.join(self.persist_dir, "metadata.pkl"), "rb") as f:
-
             self.metadata = pickle.load(f)
 
         print("[INFO] Vector store loaded")
@@ -80,20 +83,8 @@ class FaissVectorStore:
 
             results.append({
                 "text": self.metadata[idx]["text"],
+                "source": self.metadata[idx]["source"],
                 "score": float(dist)
             })
 
         return results
-
-
-if __name__ == "__main__":
-
-    docs = load_all_documents("../data")
-
-    store = FaissVectorStore()
-
-    store.build_from_documents(docs)
-
-    store.load()
-
-    print(store.query("What is attention mechanism?"))

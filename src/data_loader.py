@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
+from langchain_core.documents import Document
 
-from langchain.schema import Document
 from langchain_community.document_loaders import (
     PyPDFLoader,
     TextLoader,
@@ -14,6 +14,10 @@ from langchain_community.document_loaders.excel import UnstructuredExcelLoader
 
 
 def load_all_documents(data_dir: str) -> List[Document]:
+    """
+    Load documents from the data directory and return a list of LangChain Document objects.
+    Supports: PDF, TXT, CSV, DOCX, XLSX, JSON
+    """
 
     data_path = Path(data_dir).resolve()
 
@@ -22,7 +26,7 @@ def load_all_documents(data_dir: str) -> List[Document]:
 
     print(f"[INFO] Loading documents from: {data_path}")
 
-    documents = []
+    documents: List[Document] = []
 
     loaders = {
         ".pdf": PyPDFLoader,
@@ -39,16 +43,18 @@ def load_all_documents(data_dir: str) -> List[Document]:
 
         if suffix in loaders:
 
-            print(f"[INFO] Loading {file_path}")
-
             try:
+
                 loader = loaders[suffix](str(file_path))
 
                 docs = loader.load()
 
+                for d in docs:
+                    d.metadata["source"] = str(file_path)
+
                 documents.extend(docs)
 
-                print(f"[INFO] Loaded {len(docs)} documents")
+                print(f"[INFO] Loaded {len(docs)} docs from {file_path}")
 
             except Exception as e:
 
@@ -65,4 +71,5 @@ if __name__ == "__main__":
 
     print("Example document:\n")
 
-    print(docs[0])
+    if docs:
+        print(docs[0])

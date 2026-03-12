@@ -18,9 +18,9 @@ class RAGSearch:
 
         self.vectorstore = FaissVectorStore(persist_dir)
 
-        faiss_path = os.path.join(persist_dir, "faiss.index")
+        faiss_index = os.path.join(persist_dir, "faiss.index")
 
-        if not os.path.exists(faiss_path):
+        if not os.path.exists(faiss_index):
 
             print("[INFO] Building vector store")
 
@@ -40,7 +40,7 @@ class RAGSearch:
             temperature=0.1
         )
 
-        print("[INFO] Groq LLM ready")
+        print("[INFO] Groq LLM initialized")
 
     def search_and_answer(self, query):
 
@@ -48,8 +48,9 @@ class RAGSearch:
 
         context = "\n\n".join([r["text"] for r in results])
 
-        if not context:
+        sources = list(set([r["source"] for r in results]))
 
+        if not context:
             return "No relevant context found."
 
         prompt = f"""
@@ -61,14 +62,18 @@ Context:
 Question:
 {query}
 
-Answer:
+Answer clearly.
 """
 
         response = self.llm.invoke([
             HumanMessage(content=prompt)
         ])
 
-        return response.content
+        answer = response.content
+
+        citations = "\n\nSources:\n" + "\n".join(sources)
+
+        return answer + citations
 
 
 if __name__ == "__main__":
@@ -79,6 +84,6 @@ if __name__ == "__main__":
 
     answer = rag.search_and_answer(question)
 
-    print("\nAnswer:\n")
+    print("\nANSWER:\n")
 
     print(answer)
