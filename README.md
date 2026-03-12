@@ -218,8 +218,7 @@ Streamlit
 Groq
 
 👨‍💻 Author
-
-Your Name
+Narayan Bhandari
 
 GitHub: https://github.com/Om700-create
 
